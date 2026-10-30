@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Your details</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/onboarding.css">
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="index.html">HEALTH<span>MATE</span></a>
+  <nav><button type="button" id="logoutBtn" class="btn-ghost">Log out</button></nav>
+</header>
+
+<main class="auth onboard">
+  <p id="stepLabel" class="step-label">Step 1 of 3</p>
+  <div class="bar"><div id="barFill"></div></div>
+  <h1 id="stepTitle">Your body.</h1>
+  <p id="stepSub" class="auth-sub">We use these numbers to calculate your BMI, BMR and daily calories. HealthMate is made for adults (18 and above).</p>
+
+  <form id="onboardForm" novalidate>
+
+    <!-- Step 1: Body -->
+    <section class="step" data-step="1">
+      <label>Age
+        <input type="number" id="age" min="18" max="90" placeholder="For example: 25">
+      </label>
+      <label>Gender
+        <select id="gender">
+          <option value="">Choose</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </label>
+      <label>Height (cm)
+        <input type="number" id="height" min="120" max="230" placeholder="For example: 170">
+      </label>
+      <label>Weight (kg)
+        <input type="number" id="weight" min="30" max="250" step="0.1" placeholder="For example: 70">
+      </label>
+      <label>Activity level
+        <select id="activity">
+          <option value="">Choose</option>
+          <option value="sedentary">Little or no exercise</option>
+          <option value="light">Light (1 to 3 days a week)</option>
+          <option value="moderate">Moderate (3 to 5 days a week)</option>
+          <option value="active">Very active (6 to 7 days a week)</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- Step 2: Health -->
+    <section class="step" data-step="2" hidden>
+      <label>Body condition or injury
+        <select id="condition">
+          <option value="">Choose</option>
+          <option value="none">None</option>
+          <option value="back pain">Back pain</option>
+          <option value="knee pain">Knee pain</option>
+          <option value="shoulder pain">Shoulder pain</option>
+          <option value="other injury">Other injury</option>
+        </select>
+      </label>
+      <label>Any diagnosis
+        <select id="diagnosis">
+          <option value="">Choose</option>
+          <option value="none">None</option>
+          <option value="diabetes">Diabetes</option>
+          <option value="high blood pressure">High blood pressure</option>
+          <option value="thyroid problem">Thyroid problem</option>
+          <option value="heart problem">Heart problem</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label>Food allergies
+        <input type="text" id="allergies" placeholder="For example: peanuts, milk (or write None)">
+      </label>
+      <p class="note">If you have a diagnosis or an injury, please talk to your doctor before you follow any plan.</p>
+    </section>
+
+    <!-- Step 3: Goal -->
+    <section class="step" data-step="3" hidden>
+      <label>Your goal
+        <select id="goal">
+          <option value="">Choose</option>
+          <option value="lose weight">Lose weight</option>
+          <option value="build muscle">Build muscle</option>
+          <option value="stay fit">Stay fit</option>
+          <option value="suggest">Not sure, suggest one for me</option>
+        </select>
+      </label>
+      <label>Target weight (kg)
+        <input type="number" id="targetWeight" min="30" max="250" step="0.1" placeholder="For example: 65">
+      </label>
+      <label>Food type
+        <select id="foodType">
+          <option value="">Choose</option>
+          <option value="vegetarian">Vegetarian</option>
+          <option value="non-vegetarian">Non-vegetarian</option>
+          <option value="vegan">Vegan</option>
+        </select>
+      </label>
+      <label>Where will you work out?
+        <select id="place">
+          <option value="">Choose</option>
+          <option value="home">Home</option>
+          <option value="gym">Gym</option>
+        </select>
+      </label>
+      <label>Days per week you can exercise
+        <select id="days">
+          <option value="">Choose</option>
+          <option value="2">2 days</option>
+          <option value="3">3 days</option>
+          <option value="4">4 days</option>
+          <option value="5">5 days</option>
+          <option value="6">6 days</option>
+        </select>
+      </label>
+    </section>
+
+    <p id="message" role="alert"></p>
+
+    <div class="buttons">
+      <button type="button" class="btn-ghost" id="backBtn" hidden>Back</button>
+      <button type="button" class="btn" id="nextBtn">Next</button>
+      <button type="submit" class="btn" id="saveBtn" hidden>Save and continue</button>
+    </div>
+  </form>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/onboarding.js"></script>
+</body>
+</html>

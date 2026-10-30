@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Plate Portions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  :root {
+    --bg-dark: #0b0c08;
+    --sidebar-bg: #11120d;
+    --card-bg: #161713;
+    --subcard-bg: #0f100c;
+    --border-color: #22231b;
+    --accent-lime: #d4f938;
+    --text-main: #f8fafc;
+    --text-muted: #8c8d84;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    min-height: 100vh;
+  }
+  .sidebar {
+    width: 270px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 10px 20px 10px; border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px; text-decoration: none;
+  }
+  .brand-badge {
+    background: var(--accent-lime); color: #0b0c08; width: 38px; height: 38px;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1.2rem; font-family: 'Archivo Black', sans-serif;
+  }
+  .brand-text h2 { font-size: 1.1rem; font-family: 'Archivo Black', sans-serif; color: #fff; }
+  .brand-text span { font-size: 0.65rem; color: var(--accent-lime); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .nav-section-title { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); padding: 12px 14px 4px; font-weight: 700; }
+  .nav-group { list-style: none; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+  .nav-group li a {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border-radius: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.9rem;
+  }
+  .nav-group li a:hover { background: rgba(212, 249, 56, 0.08); color: #fff; }
+  .nav-group li.active a { background: var(--accent-lime); color: #0b0c08; font-weight: 700; }
+  .sidebar-footer { border-top: 1px solid var(--border-color); padding-top: 14px; }
+  .btn-sidebar-logout {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border-radius: 10px; background: transparent; border: none; color: #f87171; cursor: pointer; font-weight: 600;
+  }
+
+  .layout-main { margin-left: 270px; flex: 1; display: flex; flex-direction: column; }
+  .top-bar {
+    height: 60px; border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; gap: 18px; padding: 0 36px; background: #0f100c; font-size: 0.85rem; color: var(--text-muted);
+  }
+  .content { padding: 32px 36px 60px; max-width: 1100px; }
+  h1 { font-family: 'Archivo Black', sans-serif; font-size: 2rem; margin-bottom: 8px; color: #fff; }
+  .subhead { color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem; }
+
+  .box-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 28px;
+  }
+  .btn-optimize {
+    background: var(--accent-lime);
+    color: #0b0c08;
+    padding: 12px 22px;
+    border-radius: 9999px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .btn-optimize:hover { opacity: 0.9; }
+
+  .table-responsive { overflow-x: auto; margin-top: 20px; }
+  .optimized-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; text-align: left; }
+  .optimized-table th {
+    background: var(--subcard-bg); color: var(--text-muted); padding: 12px 14px;
+    font-weight: 600; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid var(--border-color);
+  }
+  .optimized-table td { padding: 14px; border-bottom: 1px solid var(--border-color); color: #e2e4dc; }
+  .macro-summary {
+    display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 14px;
+    border-top: 1px solid var(--border-color); font-size: 0.9rem; color: #a4a69c;
+  }
+  .macro-summary strong { color: #fff; }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #171814; color: #f4f4ee;
+    border: 1px solid #2a2c25; border-radius: 12px;
+    padding: 8px 16px; font-family: inherit; font-size: 0.9rem; font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .back-btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .back-btn:hover { border-color: var(--accent-lime); color: var(--accent-lime); background: #1d1f18; }
+  .back-btn:hover svg { transform: translateX(-3px); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent-lime); outline-offset: 2px; }
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sidebar-brand">
+      <div class="brand-badge">H</div>
+      <div class="brand-text"><h2>HealthMate</h2><span>ARCHIVE YOUR GOAL</span></div>
+    </a>
+    <ul class="nav-group">
+      <li><a href="dashboard.html"><span>⊞</span><span>Dashboard</span></a></li>
+      <div class="nav-section-title">Core Plans</div>
+      <li><a href="workout.html"><span>⚡</span><span>Workout Plan</span></a></li>
+      <li><a href="diet.html"><span>🥗</span><span>Diet Plan</span></a></li>
+      <li><a href="progress.html"><span>📈</span><span>Progress Tracker</span></a></li>
+      <li><a href="chat.html"><span>💬</span><span>AI Chat Coach</span></a></li>
+      <div class="nav-section-title">Smart Engines</div>
+      <li><a href="forecast.html"><span>🎯</span><span>Weight Forecast</span></a></li>
+      <li class="active"><a href="portions.html"><span>⚖️</span><span>Plate Portions</span></a></li>
+      <div class="nav-section-title">Account</div>
+      <li><a href="onboarding.html"><span>⚙️</span><span>Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button type="button" id="logoutBtn" class="btn-sidebar-logout"><span>🚪</span><span>Log out</span></button>
+    </div>
+  </aside>
+
+  <div class="layout-main">
+    <div class="top-bar">
+      <button type="button" class="back-btn" onclick="history.length > 1 ? history.back() : (location.href = 'dashboard.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back
+      </button>
+      <span>HealthMate / <strong style="color:#fff;">Plate Portions</strong></span>
+    </div>
+    <div class="content">
+      <h1>Plate Portion Calculator</h1>
+      <p class="subhead">Calculates exact food weights in grams using linear programming optimization.</p>
+
+      <section class="box-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h2 style="font-size: 1.25rem; font-family:'Archivo Black',sans-serif;">Optimal Gram Portions</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">Solves exact quantities under your macro and allergy constraints.</p>
+          </div>
+          <button id="btnRunOptimizer" class="btn-optimize" type="button">
+            <span>⚡ Run LP Optimizer</span>
+          </button>
+        </div>
+
+        <div id="optimizerResultBox" style="display:none; margin-top:16px;">
+          <div class="table-responsive">
+            <table class="optimized-table">
+              <thead>
+                <tr>
+                  <th>Food Item</th>
+                  <th>Optimized Quantity</th>
+                  <th>Calories</th>
+                  <th>Protein</th>
+                  <th>Carbs</th>
+                  <th>Fats</th>
+                </tr>
+              </thead>
+              <tbody id="optimizedTableBody"></tbody>
+            </table>
+          </div>
+          <div class="macro-summary" id="optimizedMacroSummary"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/portions.js"></script>
+</body>
+</html>

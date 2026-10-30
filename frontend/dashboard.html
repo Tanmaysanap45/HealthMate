@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg-dark: #0b0c08;
+    --sidebar-bg: #11120d;
+    --card-bg: #161713;
+    --subcard-bg: #0f100c;
+    --border-color: #22231b;
+    --accent-lime: #d4f938;
+    --accent-hover: #e2ff5e;
+    --text-main: #f8fafc;
+    --text-muted: #8c8d84;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SIDEBAR - WITH SCROLLING ENABLED */
+  .sidebar {
+    width: 270px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 100;
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Custom Sleek Scrollbar for Sidebar */
+  .sidebar::-webkit-scrollbar {
+    width: 5px;
+  }
+  .sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+  }
+  .sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-lime);
+  }
+
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 10px 20px 10px; border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px; text-decoration: none;
+    flex-shrink: 0;
+  }
+  .brand-badge {
+    background: var(--accent-lime); color: #0b0c08; width: 38px; height: 38px;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1.2rem; font-family: 'Archivo Black', sans-serif;
+  }
+  .brand-text h2 { font-size: 1.1rem; font-family: 'Archivo Black', sans-serif; color: #fff; line-height: 1.1; }
+  .brand-text span { font-size: 0.65rem; color: var(--accent-lime); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+  .nav-section-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 12px 14px 4px 14px; font-weight: 700; }
+  .nav-group { list-style: none; display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+  .nav-group li a {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border-radius: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-group li a:hover { background: rgba(212, 249, 56, 0.08); color: #ffffff; }
+  .nav-group li.active a { background: var(--accent-lime); color: #0b0c08; font-weight: 700; }
+  .sidebar-footer { border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px; flex-shrink: 0; }
+  .btn-sidebar-logout {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border-radius: 10px; background: transparent; border: none; color: #f87171; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+  }
+
+  /* MAIN VIEW */
+  .layout-main { margin-left: 270px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .top-breadcrumb-bar {
+    height: 60px; border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 36px; background: #0f100c;
+  }
+  .breadcrumb { font-size: 0.85rem; color: var(--text-muted); }
+  .breadcrumb strong { color: #ffffff; }
+  .dashboard-body { padding: 30px 36px 60px 36px; max-width: 1200px; }
+  .header-area { margin-bottom: 24px; }
+  .header-area h1 { font-size: 2rem; font-family: 'Archivo Black', sans-serif; color: #ffffff; }
+  .header-area .goal-line { color: var(--text-muted); margin-top: 6px; font-size: 0.95rem; }
+  .header-area .goal-line strong { color: var(--accent-lime); }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;
+  }
+  .stat-card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .stat-card strong { display: block; font-size: 2rem; font-family: 'Archivo Black', sans-serif; color: var(--accent-lime); margin: 8px 0 4px 0; }
+  .stat-card small { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* CHARTS SECTION */
+  .section-title {
+    font-size: 1.25rem;
+    font-family: 'Archivo Black', sans-serif;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .chart-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+  .chart-card-head h3 {
+    font-size: 1.05rem;
+    font-family: 'Archivo Black', sans-serif;
+    color: #ffffff;
+  }
+  .chart-card-head p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .chart-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: #202715;
+    color: var(--accent-lime);
+    border: 1px solid #35421f;
+  }
+  .canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 260px;
+  }
+
+  /* TODAY'S NUTRITION (pie chart) */
+  .nutrition-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  .nutrition-body {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .pie-box { position: relative; width: 100%; height: 280px; }
+  .nutri-empty { color: var(--text-muted); font-size: 0.92rem; text-align: center; padding-top: 110px; }
+  .nutri-empty a { color: var(--accent-lime); }
+  .nutri-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted); font-size: 0.95rem;
+  }
+  .nutri-row:last-child { border-bottom: none; }
+  .nutri-row .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
+  .nutri-row strong { color: var(--accent-lime); font-family: 'Archivo Black', sans-serif; font-size: 1.1rem; font-weight: 400; }
+  .nutri-row.total strong { font-size: 1.4rem; }
+
+  /* HABITS & RECOVERY TRACKER CARDS (Steps, Sleep, Water, Workout) */
+  .habits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 20px;
+  }
+  .habit-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .habit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .habit-header h3 {
+    font-size: 1.05rem;
+    font-family: 'Archivo Black', sans-serif;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .habit-value {
+    font-size: 2.1rem;
+    font-family: 'Archivo Black', sans-serif;
+    color: var(--accent-lime);
+    margin-bottom: 4px;
+  }
+  .habit-target {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  /* Progress Bar Container */
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: var(--subcard-bg);
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent-lime);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  /* Water Tracker Quick Buttons */
+  .water-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .btn-water {
+    flex: 1;
+    background: var(--subcard-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-water:hover {
+    background: rgba(212, 249, 56, 0.1);
+    border-color: var(--accent-lime);
+    color: var(--accent-lime);
+  }
+
+  @media (max-width: 850px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    .nutrition-body { grid-template-columns: 1fr; }
+    .sidebar { width: 230px; }
+    .layout-main { margin-left: 230px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sidebar-brand">
+      <div class="brand-badge">H</div>
+      <div class="brand-text">
+        <h2>HealthMate</h2>
+        <span>ARCHIVE YOUR GOAL</span>
+      </div>
+    </a>
+
+    <ul class="nav-group">
+      <li class="active">
+        <a href="dashboard.html">
+          <span>⊞</span>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <div class="nav-section-title">Core Plans</div>
+      <li>
+        <a href="workout.html">
+          <span>⚡</span>
+          <span>Workout Plan</span>
+        </a>
+      </li>
+      <li>
+        <a href="workout-log.html">
+          <span>🏋️</span>
+          <span>Workout Log</span>
+        </a>
+      </li>
+      <li>
+        <a href="diet.html">
+          <span>🥗</span>
+          <span>Diet Plan</span>
+        </a>
+      </li>
+      <li>
+        <a href="log-meal.html">
+          <span>🍽️</span>
+          <span>Log Meal</span>
+        </a>
+      </li>
+      <li>
+        <a href="progress.html">
+          <span>📈</span>
+          <span>Progress Tracker</span>
+        </a>
+      </li>
+      <li>
+        <a href="chat.html">
+          <span>💬</span>
+          <span>AI Chat Coach</span>
+        </a>
+      </li>
+
+      <div class="nav-section-title">Smart Engines</div>
+      <li>
+        <a href="forecast.html">
+          <span>🎯</span>
+          <span>Weight Forecast</span>
+        </a>
+      </li>
+      <li>
+        <a href="portions.html">
+          <span>⚖️</span>
+          <span>Plate Portions</span>
+        </a>
+      </li>
+
+      <div class="nav-section-title">My Report</div>
+      <li>
+        <a href="#" id="downloadReport">
+          <span>📄</span>
+          <span>Download PDF</span>
+        </a>
+      </li>
+
+      <div class="nav-section-title">Profile</div>
+      <li>
+        <a href="onboarding.html">
+          <span>✏️</span>
+          <span>Edit Profile</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button type="button" id="logoutBtn" class="btn-sidebar-logout">
+        <span>🚪</span>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="layout-main">
+    <header class="top-breadcrumb-bar">
+      <div class="breadcrumb">HealthMate / <strong>Dashboard</strong></div>
+    </header>
+
+    <main class="dashboard-body">
+      <div class="header-area">
+        <h1 id="greeting">Hello.</h1>
+        <p id="goalLine" class="goal-line">Loading your numbers...</p>
+      </div>
+
+      <!-- Top Metric Cards -->
+      <section class="stats-grid">
+        <article class="stat-card">
+          <span class="label">BMI</span>
+          <strong id="bmi">-</strong>
+          <small id="bmiCat"></small>
+        </article>
+        <article class="stat-card">
+          <span class="label">BMR</span>
+          <strong id="bmr">-</strong>
+          <small>kcal body burns at rest</small>
+        </article>
+        <article class="stat-card">
+          <span class="label">Daily Target</span>
+          <strong id="cal">-</strong>
+          <small>prescribed intake</small>
+        </article>
+        <article class="stat-card">
+          <span class="label">Current Weight</span>
+          <strong id="wt">-</strong>
+          <small id="wtNote"></small>
+        </article>
+      </section>
+
+      <!-- Charts Section -->
+      <h2 class="section-title">Visual Analytics & Progress</h2>
+      <section class="charts-grid">
+        <article class="chart-card">
+          <div class="chart-card-head">
+            <div>
+              <h3>Weight Trajectory</h3>
+              <p>Actual logged weights vs. target threshold</p>
+            </div>
+            <span class="chart-badge">Line Chart</span>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="weightProgressChart"></canvas>
+          </div>
+        </article>
+
+        <article class="chart-card">
+          <div class="chart-card-head">
+            <div>
+              <h3>Calorie Adherence</h3>
+              <p>Daily consumed kcal vs. daily target limit</p>
+            </div>
+            <span class="chart-badge">Bar Chart</span>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="calorieProgressChart"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <!-- Today's Nutrition (pie chart) -->
+      <h2 class="section-title">Today's Nutrition</h2>
+      <section class="nutrition-card">
+        <div class="chart-card-head">
+          <div>
+            <h3>Calories & Macros</h3>
+            <p id="nutriDate">Meals you logged today</p>
+          </div>
+          <span class="chart-badge">Pie Chart</span>
+        </div>
+
+        <div class="nutrition-body">
+          <div class="pie-box">
+            <canvas id="macroPie"></canvas>
+            <p id="nutriEmpty" class="nutri-empty" hidden>
+              No meals logged today yet.<br>
+              <a href="log-meal.html">Log a meal</a>
+            </p>
+          </div>
+
+          <div>
+            <div class="nutri-row total">
+              <span>Total calories</span>
+              <strong id="nutriKcal">-</strong>
+            </div>
+            <div class="nutri-row">
+              <span><span class="dot" style="background:#d4f938;"></span>Protein</span>
+              <strong id="nutriP">-</strong>
+            </div>
+            <div class="nutri-row">
+              <span><span class="dot" style="background:#facc15;"></span>Carbs</span>
+              <strong id="nutriC">-</strong>
+            </div>
+            <div class="nutri-row">
+              <span><span class="dot" style="background:#fb923c;"></span>Fat</span>
+              <strong id="nutriF">-</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Steps, Sleep, Water & Workout Section -->
+      <h2 class="section-title">Daily Habits & Recovery</h2>
+      <section class="habits-grid">
+
+        <!-- 1. Steps Card -->
+        <article class="habit-card">
+          <div class="habit-header">
+            <h3>👟 Daily Steps</h3>
+            <span class="chart-badge" id="stepStatus">Active</span>
+          </div>
+          <div class="habit-value" id="stepDisplay">7,420</div>
+          <div class="habit-target">Target: 10,000 steps (74% done)</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="stepBar" style="width: 74%;"></div>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Approx. 5.2 km walked & 320 kcal burned</p>
+        </article>
+
+        <!-- 2. Sleep Card -->
+        <article class="habit-card">
+          <div class="habit-header">
+            <h3>🌙 Sleep Recovery</h3>
+            <span class="chart-badge" id="sleepStatus">Optimal</span>
+          </div>
+          <div class="habit-value" id="sleepDisplay">7h 30m</div>
+          <div class="habit-target">Target: 8h 00m (93% recovered)</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="sleepBar" style="width: 93%;"></div>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">REM & deep cycle recovery status healthy</p>
+        </article>
+
+        <!-- 3. Water Intake Card -->
+        <article class="habit-card">
+          <div class="habit-header">
+            <h3>💧 Water Intake</h3>
+            <span class="chart-badge" id="waterPercentage">66%</span>
+          </div>
+          <div class="habit-value" id="waterDisplay">2,000 ml</div>
+          <div class="habit-target">Daily Goal: 3,000 ml</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="waterBar" style="width: 66%;"></div>
+          </div>
+          <div class="water-actions">
+            <button type="button" class="btn-water" id="btnAdd250">+250 ml (Glass)</button>
+            <button type="button" class="btn-water" id="btnAdd500">+500 ml (Bottle)</button>
+            <button type="button" class="btn-water" id="btnResetWater" style="flex: 0.6; color: #ff8a7a;">Reset</button>
+          </div>
+        </article>
+
+        <!-- 4. Workout Today Card (from the Workout Log) -->
+        <article class="habit-card">
+          <div class="habit-header">
+            <h3>🏋️ Workout Today</h3>
+            <span class="chart-badge" id="workoutStatus">None yet</span>
+          </div>
+          <div class="habit-value" id="workoutMinutes">0 min</div>
+          <div class="habit-target" id="workoutSets">0 sets logged &middot; Goal: 30 min</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="workoutBar" style="width: 0%;"></div>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Added from the Workout Log page</p>
+        </article>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/dashboard.js"></script>
+
+  <!-- Today's Nutrition pie chart -->
+  <script>
+    (async () => {
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return;
+
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      const today = d.toISOString().slice(0, 10);
+      document.getElementById("nutriDate").textContent = "Meals you logged on " + today;
+
+      const { data, error } = await client
+        .from("meal_logs")
+        .select("calories, protein_g, carbs_g, fat_g")
+        .eq("log_date", today);
+
+      if (error || !data || data.length === 0) {
+        document.getElementById("nutriEmpty").hidden = false;
+        document.getElementById("nutriKcal").textContent = "0 kcal";
+        document.getElementById("nutriP").textContent = "0 g";
+        document.getElementById("nutriC").textContent = "0 g";
+        document.getElementById("nutriF").textContent = "0 g";
+        return;
+      }
+
+      let kcal = 0, protein = 0, carbs = 0, fat = 0;
+      data.forEach((m) => {
+        kcal += Number(m.calories);
+        protein += Number(m.protein_g);
+        carbs += Number(m.carbs_g);
+        fat += Number(m.fat_g);
+      });
+
+      const proteinKcal = protein * 4;
+      const carbKcal = carbs * 4;
+      const fatKcal = fat * 9;
+
+      Chart.defaults.color = "#8c8d84";
+      Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+      new Chart(document.getElementById("macroPie"), {
+        type: "pie",
+        data: {
+          labels: ["Protein", "Carbs", "Fat"],
+          datasets: [{
+            data: [proteinKcal, carbKcal, fatKcal],
+            backgroundColor: ["#d4f938", "#facc15", "#fb923c"],
+            borderColor: "#161713",
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct = total ? ((ctx.raw / total) * 100).toFixed(0) : 0;
+                  return ` ${ctx.label}: ${Math.round(ctx.raw)} kcal (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      document.getElementById("nutriKcal").textContent = Math.round(kcal) + " kcal";
+      document.getElementById("nutriP").textContent = protein.toFixed(1) + " g";
+      document.getElementById("nutriC").textContent = carbs.toFixed(1) + " g";
+      document.getElementById("nutriF").textContent = fat.toFixed(1) + " g";
+    })();
+  </script>
+
+  <!-- Today's workout totals from the Workout Log -->
+  <script>
+    (async () => {
+      const WORKOUT_GOAL_MIN = 30;
+
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return;
+
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      const today = d.toISOString().slice(0, 10);
+
+      const { data, error } = await client
+        .from("workout_logs")
+        .select("sets, duration_min")
+        .eq("log_date", today);
+
+      let minutes = 0, sets = 0, count = 0;
+      if (!error && data) {
+        count = data.length;
+        data.forEach((w) => {
+          minutes += Number(w.duration_min) || 0;
+          sets += Number(w.sets) || 0;
+        });
+      }
+
+      const percent = Math.min(100, Math.round((minutes / WORKOUT_GOAL_MIN) * 100));
+      document.getElementById("workoutMinutes").textContent = minutes + " min";
+      document.getElementById("workoutSets").textContent =
+        sets + (sets === 1 ? " set" : " sets") + " logged · Goal: " + WORKOUT_GOAL_MIN + " min";
+      document.getElementById("workoutBar").style.width = percent + "%";
+
+      const status = document.getElementById("workoutStatus");
+      if (count === 0) {
+        status.textContent = "None yet";
+      } else if (minutes >= WORKOUT_GOAL_MIN) {
+        status.textContent = "Goal reached";
+      } else {
+        status.textContent = "In progress";
+      }
+    })();
+  </script>
+
+  <!-- Download the PDF report -->
+  <script>
+    (() => {
+      const reportBtn = document.getElementById("downloadReport");
+      const reportClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      reportBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const label = reportBtn.querySelectorAll("span")[1];
+        const oldText = label.textContent;
+        label.textContent = "Creating PDF...";
+
+        try {
+          const { data: { session } } = await reportClient.auth.getSession();
+          if (!session) {
+            window.location.href = "login.html";
+            return;
+          }
+
+          const res = await fetch("http://localhost:8000/api/report/pdf", {
+            headers: { "Authorization": "Bearer " + session.access_token }
+          });
+
+          if (!res.ok) {
+            const info = await res.json().catch(() => ({}));
+            throw new Error(info.detail || "Could not create the report.");
+          }
+
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "HealthMate-Report.pdf";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert("Could not download the report: " + err.message);
+        } finally {
+          label.textContent = oldText;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

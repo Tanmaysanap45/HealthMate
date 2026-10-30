@@ -1,0 +1,9 @@
+.stats{margin-bottom:40px}
+
+.meals{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:50px}
+.meal{background:#171814;border:1px solid var(--line);border-radius:20px;padding:22px;transition:border-color .25s,transform .25s;animation:up .6s cubic-bezier(.2,.8,.2,1) backwards}
+.meal:hover{border-color:var(--accent);transform:translateY(-4px)}
+.meal-head{display:flex;flex-direction:column;gap:2px;margin-bottom:14px}
+.meal-name{font-family:var(--head);font-size:1.3rem;color:var(--accent)}
+.meal-kcal{color:var(--muted);font-size:.9rem}
+.empty-meal{color:var(--muted)}

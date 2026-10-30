@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Workout Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/diet.css">
+<style>
+  .log-card {
+    background: #171814; border: 1px solid var(--line, #2a2c25);
+    border-radius: 20px; padding: 28px; margin-bottom: 22px;
+  }
+  .log-card h2 { font-family: var(--head, 'Archivo Black', sans-serif); font-size: 1.3rem; color: var(--accent, #d4ff3a); margin-bottom: 6px; }
+  .log-card .sub { color: var(--muted, #aaa); font-size: 0.9rem; margin-bottom: 22px; }
+
+  /* Day picker */
+  .day-select {
+    background: #0e0f0c; color: var(--text, #f4f4ee);
+    border: 1px solid var(--line, #2a2c25); border-radius: 12px;
+    padding: 13px 14px; font-size: 0.95rem; font-family: inherit; width: 100%; max-width: 520px;
+  }
+  .day-select:focus { outline: none; border-color: var(--accent, #d4ff3a); }
+  .day-label { display: block; font-size: 0.85rem; color: var(--muted, #aaa); margin-bottom: 8px; }
+
+  /* Exercise rows from the plan */
+  .plan-row {
+    border-top: 1px solid var(--line, #2a2c25); padding: 18px 0;
+  }
+  .plan-row:first-child { border-top: none; padding-top: 0; }
+  .plan-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .plan-head input[type="checkbox"] {
+    width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent, #d4ff3a); cursor: pointer; flex-shrink: 0;
+  }
+  .plan-name { font-size: 1rem; color: var(--text, #f4f4ee); font-weight: 500; }
+  .plan-target { font-size: 0.85rem; color: var(--muted, #aaa); margin-top: 2px; }
+  .plan-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding-left: 32px; }
+  .mini-field { display: flex; flex-direction: column; gap: 5px; }
+  .mini-field label { font-size: 0.78rem; color: var(--muted, #aaa); }
+  .mini-field input {
+    background: #0e0f0c; color: var(--text, #f4f4ee);
+    border: 1px solid var(--line, #2a2c25); border-radius: 10px;
+    padding: 10px 12px; font-size: 0.92rem; font-family: inherit; width: 100%;
+  }
+  .mini-field input:focus { outline: none; border-color: var(--accent, #d4ff3a); }
+
+  .save-btn {
+    width: 100%; background: var(--accent, #d4ff3a); color: #111;
+    border: none; border-radius: 999px; padding: 14px; font-size: 1rem;
+    font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 22px;
+  }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .hint { font-size: 0.82rem; color: var(--muted, #aaa); text-align: center; min-height: 1.2em; margin-top: 10px; }
+  .hint.error { color: #ff8a7a; }
+  .hint.ok { color: var(--accent, #d4ff3a); }
+
+  /* Today's workouts list */
+  .log-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    border-top: 1px solid var(--line, #2a2c25); padding: 14px 0;
+  }
+  .log-row:first-of-type { border-top: none; }
+  .log-info strong { display: block; font-size: 1rem; color: var(--text, #f4f4ee); font-weight: 500; }
+  .log-info span { font-size: 0.85rem; color: var(--muted, #aaa); }
+  .log-right { display: flex; align-items: center; gap: 14px; }
+  .log-min { font-family: var(--head, 'Archivo Black', sans-serif); color: var(--accent, #d4ff3a); font-size: 1.1rem; white-space: nowrap; }
+  .log-del {
+    background: transparent; color: #ff8a7a; border: 1px solid #4a2a26;
+    border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
+  }
+  .log-del:hover { background: #2a1714; }
+  .totals {
+    margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line, #2a2c25);
+    display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9rem; color: var(--muted, #aaa);
+  }
+  .totals strong { color: var(--accent, #d4ff3a); font-weight: 500; }
+  .danger-btn {
+    margin-top: 18px; background: transparent; color: #ff8a7a; border: 1px solid #4a2a26;
+    border-radius: 999px; padding: 10px 20px; font-size: 0.9rem; cursor: pointer; font-family: inherit;
+  }
+  .danger-btn:hover { background: #2a1714; }
+  .empty-note { color: var(--muted, #aaa); font-size: 0.95rem; padding: 18px 0; }
+
+  /* Top bar: Back button on the left, logo next to it */
+  .nav-left { display: flex; align-items: center; gap: 18px; }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #171814; color: #f4f4ee;
+    border: 1px solid #2a2c25; border-radius: 12px;
+    padding: 9px 16px; font-family: inherit; font-size: 0.92rem; font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .back-btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .back-btn:hover { border-color: var(--accent, #d4f938); color: var(--accent, #d4f938); background: #1d1f18; }
+  .back-btn:hover svg { transform: translateX(-3px); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent, #d4f938); outline-offset: 2px; }
+
+  @media (max-width: 700px) {
+    .plan-fields { grid-template-columns: 1fr 1fr; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-left">
+    <button type="button" class="back-btn" onclick="history.length > 1 ? history.back() : (location.href = 'dashboard.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back
+    </button>
+    <a class="logo" href="dashboard.html">HEALTH<span>MATE</span></a>
+  </div>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="workout.html">Workout Plan</a>
+    <a href="workout-log.html" class="active">Workout Log</a>
+    <a href="log-meal.html">Log Meal</a>
+    <button type="button" id="logoutBtn" class="btn-ghost">Log out</button>
+  </nav>
+</header>
+
+<main class="dash">
+  <p class="eyebrow">Training Tracker</p>
+  <h1>Log Your Workout</h1>
+  <p class="goal-line">Tick the exercises from your plan that you finished today.</p>
+
+  <section class="log-card" style="margin-top: 28px;">
+    <h2>Your workout plan</h2>
+    <p class="sub">Choose the workout day you are doing, then tick each exercise you finished.</p>
+
+    <label class="day-label" for="daySelect">Workout day</label>
+    <select id="daySelect" class="day-select" disabled>
+      <option>Loading your plan...</option>
+    </select>
+
+    <div id="planList" style="margin-top: 22px;">
+      <p class="empty-note">Loading your plan...</p>
+    </div>
+
+    <button type="button" class="save-btn" id="saveBtn" hidden>Save finished exercises</button>
+    <p class="hint" id="status">Leave a field empty if you did not use it. Weight and minutes can be 0.</p>
+  </section>
+
+  <section class="log-card">
+    <h2>Today's workout</h2>
+    <p class="sub" id="todayDate">Exercises you logged today will appear here.</p>
+    <div id="todayList">
+      <p class="empty-note">Loading...</p>
+    </div>
+    <div class="totals" id="todayTotals" hidden></div>
+    <button type="button" class="danger-btn" id="deleteAllBtn" hidden>Delete all today's exercises</button>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const API_URL = "http://localhost:8000";
+
+  const $ = (id) => document.getElementById(id);
+
+  // Today's date in YOUR local time
+  function localDate() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Small helper that builds one HTML element
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function setStatus(text, type) {
+    const s = $("status");
+    s.textContent = text;
+    s.className = "hint" + (type ? " " + type : "");
+  }
+
+  // Log out
+  $("logoutBtn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    window.location.href = "login.html";
+  });
+
+  // The plan exercises currently shown, one entry per row
+  let planRows = [];
+  let planSchedule = [];
+
+  // Small number box used in each row
+  function miniField(labelText, placeholder, value, min, max, step) {
+    const wrap = el("div", "mini-field");
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = min;
+    input.max = max;
+    input.step = step;
+    input.placeholder = placeholder;
+    if (value !== undefined && value !== "") input.value = value;
+    wrap.append(el("label", "", labelText), input);
+    return { wrap, input };
+  }
+
+  // Shows the exercises for the chosen day
+  function showDay(index) {
+    const day = planSchedule[index];
+    const list = $("planList");
+    list.replaceChildren();
+    planRows = [];
+
+    if (!day || !day.exercises || day.exercises.length === 0) {
+      list.append(el("p", "empty-note", "No exercises found for this day."));
+      $("saveBtn").hidden = true;
+      return;
+    }
+
+    day.exercises.forEach((ex) => {
+      const row = el("div", "plan-row");
+
+      // Top line: checkbox, exercise name and the plan's target
+      const head = el("div", "plan-head");
+      const check = document.createElement("input");
+      check.type = "checkbox";
+
+      const titles = el("div");
+      titles.append(el("div", "plan-name", ex.name), el("div", "plan-target", ex.sets + " • " + ex.intensity + " intensity"));
+      head.append(check, titles);
+
+      // Start with the number of sets from the plan, if we can read it
+      const planSets = String(ex.sets || "").match(/^(\d+)/);
+      const setsBox = miniField("Sets done", "3", planSets ? planSets[1] : "", 1, 20, 1);
+      const repsBox = miniField("Reps done", "12", "", 0, 500, 1);
+      const weightBox = miniField("Weight (kg)", "0", "", 0, 300, 0.5);
+      const minutesBox = miniField("Minutes", "0", "", 0, 300, 1);
+
+      const fields = el("div", "plan-fields");
+      fields.append(setsBox.wrap, repsBox.wrap, weightBox.wrap, minutesBox.wrap);
+
+      row.append(head, fields);
+      list.append(row);
+
+      planRows.push({
+        name: ex.name,
+        check: check,
+        sets: setsBox.input,
+        reps: repsBox.input,
+        weight: weightBox.input,
+        minutes: minutesBox.input
+      });
+    });
+
+    $("saveBtn").hidden = false;
+  }
+
+  // Load the workout plan from the backend
+  async function loadPlan() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const select = $("daySelect");
+    try {
+      const res = await fetch(API_URL + "/api/workout", {
+        headers: { "Authorization": "Bearer " + session.access_token }
+      });
+
+      if (res.status === 401) {
+        window.location.href = "login.html";
+        return;
+      }
+      if (!res.ok) {
+        const info = await res.json().catch(() => ({}));
+        throw new Error(info.detail || "Could not load your plan.");
+      }
+
+      const plan = await res.json();
+      planSchedule = plan.schedule || [];
+
+      select.replaceChildren();
+      planSchedule.forEach((day, i) => {
+        select.append(el("option", "", day.day + ": " + day.focus));
+        select.lastChild.value = String(i);
+      });
+      select.disabled = false;
+      showDay(0);
+    } catch (err) {
+      select.replaceChildren(el("option", "", "Plan not available"));
+      $("planList").replaceChildren(el("p", "empty-note", "Could not load your plan: " + err.message + " Make sure the backend is running."));
+    }
+  }
+
+  $("daySelect").addEventListener("change", (e) => showDay(Number(e.target.value)));
+
+  // Save the exercises that were ticked
+  $("saveBtn").addEventListener("click", async () => {
+    const chosen = planRows.filter((r) => r.check.checked);
+    if (chosen.length === 0) {
+      setStatus("Tick at least one exercise you finished.", "error");
+      return;
+    }
+
+    // Check every ticked exercise before saving anything
+    const rows = [];
+    for (const r of chosen) {
+      const sets = Number(r.sets.value);
+      const reps = r.reps.value === "" ? 0 : Number(r.reps.value);
+      const weight = r.weight.value === "" ? 0 : Number(r.weight.value);
+      const minutes = r.minutes.value === "" ? 0 : Number(r.minutes.value);
+
+      if (!Number.isInteger(sets) || sets < 1 || sets > 20) {
+        setStatus(r.name + ": sets must be a whole number from 1 to 20.", "error");
+        return;
+      }
+      if (!Number.isInteger(reps) || reps < 0 || reps > 500) {
+        setStatus(r.name + ": reps must be a whole number from 0 to 500.", "error");
+        return;
+      }
+      if (isNaN(weight) || weight < 0 || weight > 300) {
+        setStatus(r.name + ": weight must be from 0 to 300 kg.", "error");
+        return;
+      }
+      if (!Number.isInteger(minutes) || minutes < 0 || minutes > 300) {
+        setStatus(r.name + ": minutes must be a whole number from 0 to 300.", "error");
+        return;
+      }
+
+      rows.push({
+        log_date: localDate(),
+        exercise_name: r.name,
+        sets: sets,
+        reps: reps,
+        weight_kg: weight,
+        duration_min: minutes
+      });
+    }
+
+    const btn = $("saveBtn");
+    btn.disabled = true;
+    setStatus("Saving...");
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { error } = await sb.from("workout_logs").insert(rows);
+      if (error) throw new Error(error.message);
+
+      // Clear the ticks so the same exercises are not saved twice by accident
+      chosen.forEach((r) => { r.check.checked = false; });
+      setStatus("Saved " + rows.length + " exercise(s). Well done!", "ok");
+      await loadToday();
+    } catch (err) {
+      setStatus("Could not save: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Delete ONE exercise (asks first)
+  async function deleteOne(id, name) {
+    if (!confirm(`Delete "${name}" from today's workout?`)) return;
+
+    const { error } = await sb.from("workout_logs").delete().eq("id", id);
+    if (error) {
+      setStatus("Could not delete: " + error.message, "error");
+      return;
+    }
+    setStatus("Deleted " + name + ".", "ok");
+    await loadToday();
+  }
+
+  // Delete ALL of today's exercises (asks first)
+  async function deleteAll() {
+    if (!confirm("Delete ALL exercises logged today? This cannot be undone.")) return;
+
+    const { error } = await sb.from("workout_logs").delete().eq("log_date", localDate());
+    if (error) {
+      setStatus("Could not delete: " + error.message, "error");
+      return;
+    }
+    setStatus("All of today's exercises were deleted.", "ok");
+    await loadToday();
+  }
+
+  $("deleteAllBtn").addEventListener("click", deleteAll);
+
+  // Load and show today's exercises
+  async function loadToday() {
+    const today = localDate();
+    $("todayDate").textContent = "Exercises you logged on " + today + ".";
+
+    const { data, error } = await sb
+      .from("workout_logs")
+      .select("*")
+      .eq("log_date", today)
+      .order("created_at", { ascending: true });
+
+    const list = $("todayList");
+    const totalsBox = $("todayTotals");
+    const deleteAllBtn = $("deleteAllBtn");
+    list.replaceChildren();
+
+    if (error) {
+      list.append(el("p", "empty-note", "Could not load workouts: " + error.message));
+      totalsBox.hidden = true;
+      deleteAllBtn.hidden = true;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      list.append(el("p", "empty-note", "No exercises logged yet today."));
+      totalsBox.hidden = true;
+      deleteAllBtn.hidden = true;
+      return;
+    }
+
+    let totalSets = 0, totalMinutes = 0;
+
+    data.forEach((w) => {
+      totalSets += w.sets;
+      totalMinutes += w.duration_min;
+
+      const details = [];
+      details.push(w.sets + (w.sets === 1 ? " set" : " sets"));
+      if (w.reps > 0) details.push(w.reps + " reps");
+      if (Number(w.weight_kg) > 0) details.push(Number(w.weight_kg) + " kg");
+
+      const info = el("div", "log-info");
+      info.append(el("strong", "", w.exercise_name), el("span", "", details.join("  •  ")));
+
+      const delBtn = el("button", "log-del", "Delete");
+      delBtn.type = "button";
+      delBtn.addEventListener("click", () => deleteOne(w.id, w.exercise_name));
+
+      const right = el("div", "log-right");
+      right.append(el("div", "log-min", w.duration_min + " min"), delBtn);
+
+      const row = el("div", "log-row");
+      row.append(info, right);
+      list.append(row);
+    });
+
+    totalsBox.replaceChildren(
+      el("span", "", "Exercises: "), el("strong", "", String(data.length)),
+      el("span", "", "Total sets: "), el("strong", "", String(totalSets)),
+      el("span", "", "Total time: "), el("strong", "", totalMinutes + " min")
+    );
+    totalsBox.hidden = false;
+    deleteAllBtn.hidden = false;
+  }
+
+  // Start: check login, load the plan, then load today's exercises
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+    await loadPlan();
+    await loadToday();
+  })();
+</script>
+</body>
+</html>

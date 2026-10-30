@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="index.html">HEALTH<span>MATE</span></a>
+  <nav><a href="index.html">Back to home</a></nav>
+</header>
+
+<main class="auth">
+  <h1 id="title">Welcome back.</h1>
+  <p id="subtitle" class="auth-sub">Log in to see your plan.</p>
+
+  <form id="authForm" novalidate>
+    <label id="nameRow" hidden>Full name
+      <input type="text" id="name" autocomplete="name">
+    </label>
+    <label>Email
+      <input type="email" id="email" autocomplete="email" required>
+    </label>
+    <label>Password
+      <input type="password" id="password" autocomplete="current-password" minlength="6" required>
+    </label>
+    <p id="message" role="alert"></p>
+    <button class="btn" type="submit" id="submitBtn">Log in</button>
+  </form>
+
+  <p class="switch">
+    <span id="switchText">New to HealthMate?</span>
+    <button type="button" id="switchBtn">Create account</button>
+  </p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

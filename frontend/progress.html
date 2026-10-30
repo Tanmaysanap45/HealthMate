@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Progress Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<style>
+  .progress-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 30px;
+  }
+  .card-box {
+    background: #171814;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 24px;
+  }
+  .card-box h2 {
+    font-size: 1.25rem;
+    font-family: var(--head);
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  form.log-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  input, textarea {
+    background: #0e0f0c;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text);
+    font: inherit;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .checkbox-label {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-top: 6px;
+  }
+  .checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  #logMsg {
+    min-height: 1.4em;
+    font-size: 0.9rem;
+    color: #ff8a7a;
+  }
+  #logMsg.ok {
+    color: var(--accent);
+  }
+  .history-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 520px;
+    overflow-y: auto;
+  }
+  .history-item {
+    background: #0e0f0c;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+  .history-date {
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .history-details {
+    color: var(--muted);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .badge {
+    background: #18201a;
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .btn-danger-dark {
+    background: #0e0f0c;
+    color: #ff8a7a;
+    border: 1px solid #ff8a7a;
+    border-radius: 9999px;
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-danger-dark:hover {
+    background: #251715;
+    color: #ff9f92;
+  }
+
+  /* Top bar: Back button on the left, logo next to it */
+  .nav-left { display: flex; align-items: center; gap: 18px; }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #171814; color: #f4f4ee;
+    border: 1px solid #2a2c25; border-radius: 12px;
+    padding: 9px 16px; font-family: inherit; font-size: 0.92rem; font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .back-btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .back-btn:hover { border-color: var(--accent, #d4f938); color: var(--accent, #d4f938); background: #1d1f18; }
+  .back-btn:hover svg { transform: translateX(-3px); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent, #d4f938); outline-offset: 2px; }
+
+  @media (max-width: 850px) {
+    .progress-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-left">
+    <button type="button" class="back-btn" onclick="history.length > 1 ? history.back() : (location.href = 'dashboard.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back
+    </button>
+    <a class="logo" href="dashboard.html">HEALTH<span>MATE</span></a>
+  </div>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="workout.html">Workout</a>
+    <a href="diet.html">Diet</a>
+    <button type="button" id="logoutBtn" class="btn-ghost">Log out</button>
+  </nav>
+</header>
+
+<main class="dash">
+  <p class="eyebrow">Consistency Tracker</p>
+  <h1>Your Progress</h1>
+  <p class="goal-line">Log your daily metrics, steps, sleep, and review your logs.</p>
+
+  <section class="stats" id="progressStats">
+    <article class="stat-card">
+      <span class="label">Starting weight</span>
+      <strong id="startWt">-</strong>
+      <small>recorded at onboarding</small>
+    </article>
+    <article class="stat-card">
+      <span class="label">Latest weight</span>
+      <strong id="latestWt">-</strong>
+      <small id="wtDiff">No entries yet</small>
+    </article>
+    <article class="stat-card">
+      <span class="label">Target weight</span>
+      <strong id="targetWt">-</strong>
+      <small>your primary goal</small>
+    </article>
+    <article class="stat-card">
+      <span class="label">Total days logged</span>
+      <strong id="totalLogs">0</strong>
+      <small>keep the streak going</small>
+    </article>
+  </section>
+
+  <div class="progress-grid">
+    <!-- Log Form -->
+    <section class="card-box">
+      <h2>Log Today's Numbers</h2>
+      <form id="logForm" class="log-form" novalidate>
+        <label>Date
+          <input type="date" id="logDate" required>
+        </label>
+
+        <div class="form-row">
+          <label>Weight (kg)
+            <input type="number" id="logWeight" step="0.1" min="30" max="250" placeholder="e.g. 68.5">
+          </label>
+          <label>Daily Steps
+            <input type="number" id="logSteps" min="0" max="100000" placeholder="e.g. 8500">
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>Calories eaten
+            <input type="number" id="logCalories" min="500" max="8000" placeholder="e.g. 1950">
+          </label>
+          <label>Water (Liters)
+            <input type="number" id="logWater" step="0.1" min="0" max="10" placeholder="e.g. 2.5">
+          </label>
+        </div>
+
+        <!-- Added Sleep Input -->
+        <label>Sleep (Hours)
+          <input type="number" id="logSleep" step="0.5" min="1" max="24" placeholder="e.g. 7.5">
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="logWorkout">
+          Completed workout today
+        </label>
+
+        <label>Notes
+          <textarea id="logNotes" rows="2" placeholder="How did you feel today?"></textarea>
+        </label>
+
+        <p id="logMsg" role="alert"></p>
+        <button class="btn" type="submit" id="saveLogBtn">Save Log</button>
+      </form>
+    </section>
+
+    <!-- Recent Logs List -->
+    <section class="card-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h2 style="margin-bottom: 0;">Recent Logs</h2>
+        <button type="button" id="clearLogsBtn" class="btn-danger-dark">
+          Clear All
+        </button>
+      </div>
+      <ul id="historyList" class="history-list">
+        <li style="color: var(--muted);">Loading your logs...</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/progress.js?v=7"></script>
+</body>
+</html>

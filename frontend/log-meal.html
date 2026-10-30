@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Log Meal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/diet.css">
+<style>
+  .log-tabs { display: flex; gap: 12px; margin: 0 0 26px; flex-wrap: wrap; }
+  .tab-btn {
+    background: transparent; color: var(--muted, #aaa);
+    border: 1px solid var(--line, #2a2c25); border-radius: 999px;
+    padding: 10px 22px; font-size: 0.95rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .tab-btn.active { background: var(--accent, #d4ff3a); color: #111; border-color: var(--accent, #d4ff3a); font-weight: 500; }
+  .log-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  .log-card {
+    background: #171814; border: 1px solid var(--line, #2a2c25);
+    border-radius: 20px; padding: 28px;
+  }
+  .log-card h2 { font-family: var(--head, 'Archivo Black', sans-serif); font-size: 1.3rem; color: var(--accent, #d4ff3a); margin-bottom: 6px; }
+  .log-card .sub { color: var(--muted, #aaa); font-size: 0.9rem; margin-bottom: 22px; }
+  .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
+  .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.85rem; color: var(--muted, #aaa); }
+  .field input, .field select {
+    background: #0e0f0c; color: var(--text, #f4f4ee);
+    border: 1px solid var(--line, #2a2c25); border-radius: 12px;
+    padding: 13px 14px; font-size: 0.95rem; font-family: inherit; width: 100%;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent, #d4ff3a); }
+  .form-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .save-btn {
+    width: 100%; background: var(--accent, #d4ff3a); color: #111;
+    border: none; border-radius: 999px; padding: 14px; font-size: 1rem;
+    font-weight: 500; cursor: pointer; font-family: inherit;
+  }
+  .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .hint { font-size: 0.82rem; color: var(--muted, #aaa); text-align: center; min-height: 1.2em; }
+  .hint.error { color: #ff8a7a; }
+  .hint.ok { color: var(--accent, #d4ff3a); }
+
+  /* Photo upload */
+  .drop-zone {
+    border: 2px dashed var(--line, #3a3d33); border-radius: 18px;
+    padding: 40px 20px; text-align: center; color: var(--muted, #aaa);
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .drop-zone:hover { border-color: var(--accent, #d4ff3a); }
+  .drop-zone .icon { font-size: 2.4rem; margin-bottom: 8px; }
+  .drop-zone p { font-size: 0.92rem; }
+  .photo-preview { display: block; max-width: 100%; max-height: 280px; margin: 14px auto 0; border-radius: 14px; }
+  .review-box { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line, #2a2c25); }
+  .review-box h3 { font-family: var(--head, 'Archivo Black', sans-serif); font-size: 1.1rem; color: var(--accent, #d4ff3a); margin-bottom: 4px; }
+  .cancel-btn {
+    width: 100%; background: transparent; color: var(--muted, #aaa);
+    border: 1px solid var(--line, #2a2c25); border-radius: 999px; padding: 13px;
+    font-size: 0.95rem; cursor: pointer; font-family: inherit;
+  }
+
+  /* Today's meals list */
+  .meal-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    border-top: 1px solid var(--line, #2a2c25); padding: 14px 0;
+  }
+  .meal-row:first-of-type { border-top: none; }
+  .meal-info strong { display: block; font-size: 1rem; color: var(--text, #f4f4ee); font-weight: 500; }
+  .meal-info span { font-size: 0.85rem; color: var(--muted, #aaa); }
+  .meal-tag {
+    display: inline-block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--accent, #d4ff3a); border: 1px solid #35421f; border-radius: 6px; padding: 2px 8px; margin-right: 8px;
+  }
+  .meal-right { display: flex; align-items: center; gap: 14px; }
+  .meal-kcal { font-family: var(--head, 'Archivo Black', sans-serif); color: var(--accent, #d4ff3a); font-size: 1.2rem; white-space: nowrap; }
+  .meal-del {
+    background: transparent; color: #ff8a7a; border: 1px solid #4a2a26;
+    border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
+  }
+  .meal-del:hover { background: #2a1714; }
+  .totals {
+    margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line, #2a2c25);
+    display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9rem; color: var(--muted, #aaa);
+  }
+  .totals strong { color: var(--accent, #d4ff3a); font-weight: 500; }
+  .danger-btn {
+    margin-top: 18px; background: transparent; color: #ff8a7a; border: 1px solid #4a2a26;
+    border-radius: 999px; padding: 10px 20px; font-size: 0.9rem; cursor: pointer; font-family: inherit;
+  }
+  .danger-btn:hover { background: #2a1714; }
+  .empty-note { color: var(--muted, #aaa); font-size: 0.95rem; padding: 18px 0; }
+
+  /* Top bar: Back button on the left, logo next to it */
+  .nav-left { display: flex; align-items: center; gap: 18px; }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #171814; color: #f4f4ee;
+    border: 1px solid #2a2c25; border-radius: 12px;
+    padding: 9px 16px; font-family: inherit; font-size: 0.92rem; font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .back-btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .back-btn:hover { border-color: var(--accent, #d4f938); color: var(--accent, #d4f938); background: #1d1f18; }
+  .back-btn:hover svg { transform: translateX(-3px); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent, #d4f938); outline-offset: 2px; }
+
+  @media (max-width: 700px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .macro-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-left">
+    <button type="button" class="back-btn" onclick="history.length > 1 ? history.back() : (location.href = 'dashboard.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back
+    </button>
+    <a class="logo" href="dashboard.html">HEALTH<span>MATE</span></a>
+  </div>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="workout.html">Workout</a>
+    <a href="log-meal.html" class="active">Log Meal</a>
+    <button type="button" id="logoutBtn" class="btn-ghost">Log out</button>
+  </nav>
+</header>
+
+<main class="dash">
+  <p class="eyebrow">Diet Tracker</p>
+  <h1>Log Your Meal</h1>
+  <p class="goal-line">Add what you ate, or upload a photo of your meal.</p>
+
+  <div class="log-tabs">
+    <button type="button" class="tab-btn active" id="tabManual">Enter manually</button>
+    <button type="button" class="tab-btn" id="tabPhoto">Upload meal photo</button>
+  </div>
+
+  <div class="log-grid">
+    <!-- Manual entry -->
+    <section class="log-card" id="manualPanel">
+      <h2>Manual entry</h2>
+      <p class="sub">Type the food and amount. HealthMate will work out the calories and macros for you.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="foodName">Food name</label>
+          <input id="foodName" type="text" placeholder="e.g. Peanut poha" maxlength="60">
+        </div>
+        <div class="field">
+          <label for="amount">Amount</label>
+          <input id="amount" type="text" placeholder="e.g. 100g or 1 plate" maxlength="25">
+        </div>
+        <div class="field">
+          <label for="mealType">Meal</label>
+          <select id="mealType">
+            <option>Breakfast</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+            <option>Snack</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="save-btn" id="saveBtn">Save meal</button>
+        <p class="hint" id="status">Values are estimates. Check them if you know the exact numbers.</p>
+      </div>
+    </section>
+
+    <!-- Photo upload -->
+    <section class="log-card" id="photoPanel" hidden>
+      <h2>Upload meal photo</h2>
+      <p class="sub">Take or choose a photo of your meal. HealthMate will guess the food and its macros. You can check and change them before saving.</p>
+
+      <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" hidden>
+
+      <div class="drop-zone" id="dropZone">
+        <div class="icon" id="dropIcon">📷</div>
+        <p id="dropText">Click to choose a photo of your meal</p>
+        <img id="photoPreview" class="photo-preview" alt="Your meal" hidden>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="save-btn" id="scanBtn" disabled>Scan meal</button>
+        <p class="hint" id="photoStatus">JPG, PNG or WEBP, up to 5 MB.</p>
+      </div>
+
+      <div class="review-box" id="reviewBox" hidden>
+        <h3>Check the result</h3>
+        <p class="sub">Change anything that looks wrong, then save.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="rFood">Food name</label>
+            <input id="rFood" type="text" maxlength="60">
+          </div>
+          <div class="field">
+            <label for="rAmount">Amount</label>
+            <input id="rAmount" type="text" maxlength="25">
+          </div>
+          <div class="field">
+            <label for="rMeal">Meal</label>
+            <select id="rMeal">
+              <option>Breakfast</option>
+              <option>Lunch</option>
+              <option>Dinner</option>
+              <option>Snack</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="macro-grid">
+          <div class="field">
+            <label for="rCal">Calories (kcal)</label>
+            <input id="rCal" type="number" min="0" step="1">
+          </div>
+          <div class="field">
+            <label for="rProtein">Protein (g)</label>
+            <input id="rProtein" type="number" min="0" step="0.1">
+          </div>
+          <div class="field">
+            <label for="rCarbs">Carbs (g)</label>
+            <input id="rCarbs" type="number" min="0" step="0.1">
+          </div>
+          <div class="field">
+            <label for="rFat">Fat (g)</label>
+            <input id="rFat" type="number" min="0" step="0.1">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="save-btn" id="saveScanBtn">Save this meal</button>
+          <button type="button" class="cancel-btn" id="discardScanBtn">Discard</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Today's meals -->
+    <section class="log-card">
+      <h2>Today's meals</h2>
+      <p class="sub" id="todayDate">Meals you log today will appear here.</p>
+      <div id="todayList">
+        <p class="empty-note">Loading...</p>
+      </div>
+      <div class="totals" id="todayTotals" hidden></div>
+      <button type="button" class="danger-btn" id="deleteAllBtn" hidden>Delete all today's meals</button>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const API_URL = "http://localhost:8000";
+
+  const $ = (id) => document.getElementById(id);
+
+  // Today's date in YOUR local time (not the database's time zone)
+  function localDate() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Small helper that builds one HTML element
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // Checks the food name and amount before anything is sent.
+  // Returns an error message, or an empty string if everything is fine.
+  function checkInput(food, amount) {
+    if (!/^[\p{L}][\p{L} .'()\-]{1,59}$/u.test(food)) {
+      return "Food name must be 2 to 60 letters (no numbers or symbols).";
+    }
+    const m = amount.match(/^(\d+(?:\.\d+)?)\s*([A-Za-z ]{0,20})$/);
+    if (!m) {
+      return "Amount must start with a number, like 100g, 1 plate or 300ml.";
+    }
+    const n = parseFloat(m[1]);
+    if (n <= 0) return "Amount must be more than zero.";
+    if (n > 1000) return "Amount must be 1000 or less.";
+    return "";
+  }
+
+  // Log out
+  $("logoutBtn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    window.location.href = "login.html";
+  });
+
+  // Switch between the two tabs
+  const tabManual = $("tabManual");
+  const tabPhoto = $("tabPhoto");
+  const manualPanel = $("manualPanel");
+  const photoPanel = $("photoPanel");
+
+  tabManual.addEventListener("click", () => {
+    tabManual.classList.add("active");
+    tabPhoto.classList.remove("active");
+    manualPanel.hidden = false;
+    photoPanel.hidden = true;
+  });
+
+  tabPhoto.addEventListener("click", () => {
+    tabPhoto.classList.add("active");
+    tabManual.classList.remove("active");
+    photoPanel.hidden = false;
+    manualPanel.hidden = true;
+  });
+
+  // Show a message under the Save button (manual entry)
+  function setStatus(text, type) {
+    const s = $("status");
+    s.textContent = text;
+    s.className = "hint" + (type ? " " + type : "");
+  }
+
+  // Show a message under the Scan button (photo)
+  function setPhotoStatus(text, type) {
+    const s = $("photoStatus");
+    s.textContent = text;
+    s.className = "hint" + (type ? " " + type : "");
+  }
+
+  // Delete ONE meal (asks first)
+  async function deleteOne(id, name) {
+    if (!confirm(`Delete "${name}" from today's meals?`)) return;
+
+    const { error } = await sb.from("meal_logs").delete().eq("id", id);
+    if (error) {
+      setStatus("Could not delete: " + error.message, "error");
+      return;
+    }
+    setStatus(`Deleted ${name}.`, "ok");
+    await loadToday();
+  }
+
+  // Delete ALL of today's meals (asks first)
+  async function deleteAll() {
+    const today = localDate();
+    if (!confirm("Delete ALL meals logged today? This cannot be undone.")) return;
+
+    const { error } = await sb.from("meal_logs").delete().eq("log_date", today);
+    if (error) {
+      setStatus("Could not delete: " + error.message, "error");
+      return;
+    }
+    setStatus("All of today's meals were deleted.", "ok");
+    await loadToday();
+  }
+
+  $("deleteAllBtn").addEventListener("click", deleteAll);
+
+  // Load and show today's meals
+  async function loadToday() {
+    const today = localDate();
+    $("todayDate").textContent = "Meals you logged on " + today + ".";
+
+    const { data, error } = await sb
+      .from("meal_logs")
+      .select("*")
+      .eq("log_date", today)
+      .order("created_at", { ascending: true });
+
+    const list = $("todayList");
+    const totalsBox = $("todayTotals");
+    const deleteAllBtn = $("deleteAllBtn");
+    list.replaceChildren();
+
+    if (error) {
+      list.append(el("p", "empty-note", "Could not load meals: " + error.message));
+      totalsBox.hidden = true;
+      deleteAllBtn.hidden = true;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      list.append(el("p", "empty-note", "No meals logged yet today."));
+      totalsBox.hidden = true;
+      deleteAllBtn.hidden = true;
+      return;
+    }
+
+    let kcal = 0, protein = 0, carbs = 0, fat = 0;
+
+    data.forEach((m) => {
+      kcal += m.calories;
+      protein += Number(m.protein_g);
+      carbs += Number(m.carbs_g);
+      fat += Number(m.fat_g);
+
+      const info = el("div", "meal-info");
+      const title = el("strong", "", "");
+      title.append(el("span", "meal-tag", m.meal_type), m.food_name);
+      info.append(
+        title,
+        el("span", "", (m.amount || "") + "  •  P " + m.protein_g + "g  •  C " + m.carbs_g + "g  •  F " + m.fat_g + "g")
+      );
+
+      const delBtn = el("button", "meal-del", "Delete");
+      delBtn.type = "button";
+      delBtn.addEventListener("click", () => deleteOne(m.id, m.food_name));
+
+      const right = el("div", "meal-right");
+      right.append(el("div", "meal-kcal", m.calories + " kcal"), delBtn);
+
+      const row = el("div", "meal-row");
+      row.append(info, right);
+      list.append(row);
+    });
+
+    totalsBox.replaceChildren(
+      el("span", "", "Total: "), el("strong", "", kcal + " kcal"),
+      el("span", "", "Protein: "), el("strong", "", protein.toFixed(1) + " g"),
+      el("span", "", "Carbs: "), el("strong", "", carbs.toFixed(1) + " g"),
+      el("span", "", "Fat: "), el("strong", "", fat.toFixed(1) + " g")
+    );
+    totalsBox.hidden = false;
+    deleteAllBtn.hidden = false;
+  }
+
+  // Save meal (manual entry): check the input, ask the AI, then save it to Supabase
+  $("saveBtn").addEventListener("click", async () => {
+    const foodName = $("foodName").value.trim();
+    const amount = $("amount").value.trim() || "1 serving";
+    const mealType = $("mealType").value;
+
+    // 1. Check the input in the browser first
+    const problem = checkInput(foodName, amount);
+    if (problem) {
+      setStatus(problem, "error");
+      return;
+    }
+
+    const btn = $("saveBtn");
+    btn.disabled = true;
+    btn.textContent = "Estimating...";
+    setStatus("Asking HealthMate to work out the nutrition...");
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // 2. Ask the backend (Gemini) for the nutrition values
+      const res = await fetch(API_URL + "/api/meal/estimate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + session.access_token
+        },
+        body: JSON.stringify({ food_name: foodName, amount: amount })
+      });
+
+      const info = await res.json();
+      if (!res.ok) {
+        throw new Error(info.detail || "Could not estimate this meal.");
+      }
+
+      // 3. Save the meal to Supabase (with today's local date)
+      const { error } = await sb.from("meal_logs").insert({
+        log_date: localDate(),
+        meal_type: mealType,
+        food_name: foodName,
+        amount: amount,
+        calories: info.calories,
+        protein_g: info.protein_g,
+        carbs_g: info.carbs_g,
+        fat_g: info.fat_g
+      });
+
+      if (error) throw new Error(error.message);
+
+      setStatus(`Saved: ${foodName} (${info.calories} kcal, ${info.protein_g}g protein).`, "ok");
+      $("foodName").value = "";
+      $("amount").value = "";
+      await loadToday();
+    } catch (err) {
+      setStatus("Could not save: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Save meal";
+    }
+  });
+
+  // ---------- Photo upload ----------
+  const photoInput = $("photoInput");
+  const dropZone = $("dropZone");
+  const scanBtn = $("scanBtn");
+  let chosenFile = null;
+  let chosenDataUrl = "";
+
+  // Puts the photo panel back to its starting state
+  function resetPhoto() {
+    chosenFile = null;
+    chosenDataUrl = "";
+    photoInput.value = "";
+    const img = $("photoPreview");
+    img.hidden = true;
+    img.removeAttribute("src");
+    $("dropIcon").hidden = false;
+    $("dropText").textContent = "Click to choose a photo of your meal";
+    scanBtn.disabled = true;
+    $("reviewBox").hidden = true;
+  }
+
+  dropZone.addEventListener("click", () => photoInput.click());
+
+  photoInput.addEventListener("change", () => {
+    const file = photoInput.files[0];
+    if (!file) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      resetPhoto();
+      setPhotoStatus("Please choose a JPG, PNG or WEBP photo.", "error");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      resetPhoto();
+      setPhotoStatus("That photo is bigger than 5 MB. Please choose a smaller one.", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      chosenDataUrl = reader.result;
+      chosenFile = file;
+      const img = $("photoPreview");
+      img.src = chosenDataUrl;
+      img.hidden = false;
+      $("dropIcon").hidden = true;
+      $("dropText").textContent = file.name;
+      scanBtn.disabled = false;
+      $("reviewBox").hidden = true;
+      setPhotoStatus("Photo ready. Click Scan meal.");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Fills the review boxes with what the AI found
+  function showReview(info) {
+    $("rFood").value = info.food_name;
+    $("rAmount").value = info.amount;
+    $("rCal").value = info.calories;
+    $("rProtein").value = info.protein_g;
+    $("rCarbs").value = info.carbs_g;
+    $("rFat").value = info.fat_g;
+    $("reviewBox").hidden = false;
+  }
+
+  // Scan meal: send the photo to the backend
+  scanBtn.addEventListener("click", async () => {
+    if (!chosenDataUrl) return;
+
+    scanBtn.disabled = true;
+    scanBtn.textContent = "Scanning...";
+    setPhotoStatus("HealthMate is looking at your photo...");
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const res = await fetch(API_URL + "/api/meal/scan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + session.access_token
+        },
+        body: JSON.stringify({
+          image_base64: chosenDataUrl.split(",")[1],
+          mime_type: chosenFile.type
+        })
+      });
+
+      const info = await res.json();
+      if (!res.ok) {
+        throw new Error(info.detail || "Could not scan this photo.");
+      }
+
+      showReview(info);
+      setPhotoStatus("Check the result below, then save.", "ok");
+    } catch (err) {
+      setPhotoStatus("Could not scan: " + err.message, "error");
+    } finally {
+      scanBtn.textContent = "Scan meal";
+      scanBtn.disabled = chosenDataUrl === "";
+    }
+  });
+
+  // Save the checked photo result to Supabase
+  $("saveScanBtn").addEventListener("click", async () => {
+    const food = $("rFood").value.trim();
+    const amount = $("rAmount").value.trim() || "1 serving";
+    const mealType = $("rMeal").value;
+
+    const problem = checkInput(food, amount);
+    if (problem) {
+      setPhotoStatus(problem, "error");
+      return;
+    }
+
+    const nums = [$("rCal").value, $("rProtein").value, $("rCarbs").value, $("rFat").value];
+    if (nums.some((v) => v.trim() === "")) {
+      setPhotoStatus("Please fill in all the nutrition values.", "error");
+      return;
+    }
+    const [cal, protein, carbs, fat] = nums.map(Number);
+    if ([cal, protein, carbs, fat].some((v) => v < 0)) {
+      setPhotoStatus("Nutrition values cannot be negative.", "error");
+      return;
+    }
+    if (cal > 10000) {
+      setPhotoStatus("Calories look too high for one meal.", "error");
+      return;
+    }
+    if (protein > 1000 || carbs > 1000 || fat > 1000) {
+      setPhotoStatus("Each macro must be 1000 g or less.", "error");
+      return;
+    }
+
+    const saveBtn = $("saveScanBtn");
+    saveBtn.disabled = true;
+
+    const { error } = await sb.from("meal_logs").insert({
+      log_date: localDate(),
+      meal_type: mealType,
+      food_name: food,
+      amount: amount,
+      calories: Math.round(cal),
+      protein_g: protein,
+      carbs_g: carbs,
+      fat_g: fat
+    });
+
+    saveBtn.disabled = false;
+    if (error) {
+      setPhotoStatus("Could not save: " + error.message, "error");
+      return;
+    }
+
+    setPhotoStatus(`Saved: ${food} (${Math.round(cal)} kcal).`, "ok");
+    resetPhoto();
+    await loadToday();
+  });
+
+  $("discardScanBtn").addEventListener("click", () => {
+    resetPhoto();
+    setPhotoStatus("Discarded. Choose another photo.");
+  });
+
+  // Start: check login, then load today's meals
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+    await loadToday();
+  })();
+</script>
+</body>
+</html>

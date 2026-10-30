@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthMate | Workout Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/diet.css">
+<style>
+  .warning{background:#231a19;border-left:3px solid #ff8a7a;border-radius:12px;padding:14px 18px;margin-bottom:14px;color:#fce4e0;display:flex;flex-direction:column;gap:4px;font-size:0.95rem}
+  .warning.info{background:#18201a;border-left-color:var(--accent);color:#ecfae5}
+  .warning strong{font-size:0.85rem;letter-spacing:0.04em;text-transform:uppercase}
+  .ex-list{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:12px}
+  .ex-list li{display:flex;flex-direction:column;border-top:1px solid var(--line);padding-top:10px}
+  .ex-name{font-weight:500;color:var(--text)}
+  .ex-detail{font-size:0.88rem;color:var(--muted)}
+  .notes-box{background:#171814;border:1px solid var(--line);border-radius:20px;padding:26px;margin-top:30px}
+  .notes-box h2{font-size:1.3rem;margin-bottom:14px;font-family:var(--head);color:var(--accent)}
+  .notes-box ul{list-style:disc;margin-left:22px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+
+  /* Top bar: Back button on the left, logo next to it */
+  .nav-left { display: flex; align-items: center; gap: 18px; }
+
+  /* Back button */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #171814; color: #f4f4ee;
+    border: 1px solid #2a2c25; border-radius: 12px;
+    padding: 9px 16px; font-family: inherit; font-size: 0.92rem; font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .back-btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .back-btn:hover { border-color: var(--accent, #d4f938); color: var(--accent, #d4f938); background: #1d1f18; }
+  .back-btn:hover svg { transform: translateX(-3px); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent, #d4f938); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-left">
+    <button type="button" class="back-btn" onclick="history.length > 1 ? history.back() : (location.href = 'dashboard.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back
+    </button>
+    <a class="logo" href="dashboard.html">HEALTH<span>MATE</span></a>
+  </div>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="diet.html">Diet Plan</a>
+    <button type="button" id="logoutBtn" class="btn-ghost">Log out</button>
+  </nav>
+</header>
+
+<main class="dash">
+  <p class="eyebrow">Training Regimen</p>
+  <h1>Your Workout Routine</h1>
+  <p id="summary" class="goal-line">Loading your training plan...</p>
+
+  <div id="warnings"></div>
+  <section class="meals" id="schedule"></section>
+  <div id="notes" class="notes-box"></div>
+
+  <p class="note">HealthMate workout suggestions are for physical conditioning guidance. Warm up properly and cease any exercise causing sharp discomfort.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/workout.js"></script>
+</body>
+</html>

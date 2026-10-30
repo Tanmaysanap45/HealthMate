@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scipy
+numpy
+supabase
+pydantic
+python-dotenv
+httpx
+google-genai
+reportlab
