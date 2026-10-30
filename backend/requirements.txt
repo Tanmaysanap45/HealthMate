@@ -8,3 +8,4 @@ python-dotenv
 httpx
 google-genai
 reportlab
+scikit-learn
