@@ -1,7 +1,7 @@
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const API_URL = window.location.hostname === "localhost"
-  ? "http://localhost:8000"
+  ? "https://healthmate-backend-ui9u.onrender.com"
   : "http://127.0.0.1:8000";
 
 const $ = (id) => document.getElementById(id);

@@ -1,5 +1,5 @@
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const API_URL = "http://localhost:8000"; // our Python backend
+const API_URL = "https://healthmate-backend-ui9u.onrender.com"; // our Python backend
 const $ = (id) => document.getElementById(id);
 
 // Small helper that builds one HTML element
