@@ -29,8 +29,9 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip()
 raw_keys = os.getenv("GEMINI_API_KEYS", "") or os.getenv("GEMINI_API_KEY", "")
 GEMINI_API_KEYS = [k.strip() for k in raw_keys.split(",") if k.strip()]
 
-# Model list to cycle through if a model faces temporary traffic spikes (e.g. 503)
-FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+# Models to try in order. Older models (like gemini-1.5-flash) are retired
+# by Google and return 404, so they are not included here.
+FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("HealthMate")
