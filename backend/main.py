@@ -31,7 +31,7 @@ GEMINI_API_KEYS = [k.strip() for k in raw_keys.split(",") if k.strip()]
 
 # Models to try in order. Older models (like gemini-1.5-flash) are retired
 # by Google and return 404, so they are not included here.
-FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-2.5-flash"]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("HealthMate")
