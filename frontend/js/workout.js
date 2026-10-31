@@ -1,8 +1,6 @@
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const API_URL = window.location.hostname === "localhost"
-  ? "https://healthmate-backend-ui9u.onrender.com"
-  : "http://127.0.0.1:8000";
+const API_URL = "https://healthmate-backend-ui9u.onrender.com";
 
 const $ = (id) => document.getElementById(id);
 
@@ -15,7 +13,7 @@ function el(tag, className, text) {
 
 // Makes a YouTube search link for an exercise name
 function videoLink(exerciseName) {
-  const query = encodeURIComponent("  How To Do "  +   exerciseName );
+  const query = encodeURIComponent("How To Do " + exerciseName);
   return "https://www.youtube.com/results?search_query=" + query;
 }
 
@@ -48,7 +46,7 @@ function renderWorkout(plan) {
     warnings.append(box);
   });
 
-  // Schedule Cards
+  // Schedule cards
   const container = $("schedule");
   container.replaceChildren();
 
@@ -67,7 +65,7 @@ function renderWorkout(plan) {
     day.exercises.forEach((ex) => {
       const li = el("li");
 
-      // Exercise name is a link that opens YouTube search in a new tab
+      // Exercise name opens a YouTube search in a new tab
       const nameLink = el("a", "ex-name", "▶ " + ex.name);
       nameLink.href = videoLink(ex.name);
       nameLink.target = "_blank";
@@ -84,7 +82,7 @@ function renderWorkout(plan) {
     container.append(card);
   });
 
-  // Coaching Tips
+  // Coaching tips
   const notes = $("notes");
   notes.replaceChildren();
   notes.append(el("h2", "", "Workout Guidelines"));
@@ -106,7 +104,7 @@ function renderWorkout(plan) {
       headers: { Authorization: "Bearer " + data.session.access_token }
     });
   } catch (e) {
-    showProblem("Could not reach the Python backend. Make sure uvicorn is running on port 8000.");
+    showProblem("Could not reach the Python backend. Please try again in a minute, as the free server may be waking up.");
     return;
   }
 
