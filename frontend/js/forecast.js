@@ -1,9 +1,7 @@
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = (id) => document.getElementById(id);
 
-const API_BASE = window.location.hostname === "localhost"
-  ? "https://healthmate-backend-ui9u.onrender.com"
-  : "http://127.0.0.1:8000";
+const API_BASE = "https://healthmate-backend-ui9u.onrender.com";
 
 $("logoutBtn").addEventListener("click", async () => {
   await sb.auth.signOut();
