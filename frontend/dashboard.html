@@ -391,7 +391,7 @@
 
     <main class="dashboard-body">
       <div class="header-area">
-        <h1 id="greeting">"good morning"</h1>
+        <h1 id="greeting">Good morning</h1>
         <p id="goalLine" class="goal-line">Loading your numbers...</p>
       </div>
 
@@ -727,6 +727,41 @@
           label.textContent = oldText;
         }
       });
+    })();
+  </script>
+
+  <!-- Time-based greeting: keeps the greeting correct even if dashboard.js sets the name later -->
+  <script>
+    (function () {
+      function getGreeting() {
+        var hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        return "Good evening";
+      }
+
+      function fixGreeting() {
+        var el = document.getElementById("greeting");
+        if (!el) return;
+        var text = el.textContent;
+        var fixed = text.replace(
+          /^\s*"?\s*(hello|good morning|good afternoon|good evening)/i,
+          getGreeting()
+        );
+        if (text !== fixed) {
+          el.textContent = fixed;
+        }
+      }
+
+      fixGreeting();
+      var el = document.getElementById("greeting");
+      if (el) {
+        new MutationObserver(fixGreeting).observe(el, {
+          childList: true,
+          characterData: true,
+          subtree: true
+        });
+      }
     })();
   </script>
 </body>
